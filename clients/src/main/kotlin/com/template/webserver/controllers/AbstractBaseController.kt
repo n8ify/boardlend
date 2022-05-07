@@ -1,0 +1,3 @@
+package com.template.webserver.controllers
+
+abstract class AbstractBaseController
