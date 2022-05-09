@@ -4,11 +4,10 @@ import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
 
 @CordaSerializable
-data class CreateBorrowerAccountInfo(
+data class CreateLenderAccountInfo(
     val lenderCode: String,
     val email: String,
     val name: String,
-    val tier: String,
     val active: Boolean,
     val participants: List<Party>
 )

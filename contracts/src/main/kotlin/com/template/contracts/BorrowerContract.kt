@@ -25,12 +25,6 @@ class BorrowerContract : AbstractBaseContract() {
 
     private fun verifyCreateBorrowerAccountCommand(tx: LedgerTransaction) {
 
-        executeBasicVerifyCommand(
-            tx = tx,
-            expectedTotalCommand = 1,
-            expectedCommandClasses = listOf(Commands.CreateBorrowerAccountCommand::class.java)
-        )
-
         executeBasicVerifyInputState(
             tx = tx,
             expectedTotalInputState = 0
@@ -45,12 +39,6 @@ class BorrowerContract : AbstractBaseContract() {
     }
 
     private fun verifyUpdateBorrowerAccountCommand(tx: LedgerTransaction) {
-
-        executeBasicVerifyCommand(
-            tx = tx,
-            expectedTotalCommand = 1,
-            expectedCommandClasses = listOf(Commands.UpdateBorrowerAccountCommand::class.java)
-        )
 
         executeBasicVerifyInputState(
             tx = tx,

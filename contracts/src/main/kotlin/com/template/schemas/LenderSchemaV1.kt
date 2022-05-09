@@ -6,29 +6,29 @@ import org.hibernate.annotations.ColumnDefault
 import java.time.Instant
 import javax.persistence.*
 
-object BorrowerSchema
+object LenderSchema
 
-object BorrowerSchemaV1 : MappedSchema(
+object LenderSchemaV1 : MappedSchema(
     schemaFamily = BorrowerSchema::class.java,
     version = 1,
-    mappedTypes = listOf(BorrowerEntity::class.java)
+    mappedTypes = listOf(LenderEntity::class.java)
 ) {
 
     @Entity
     @Table(
-        name = "borrower",
+        name = "lender",
         indexes = [Index(name = "idx_linear_id", columnList = "linear_id"), Index(
-            name = "idx_borrower_code",
-            columnList = "borrower_code"
+            name = "idx_lender_code",
+            columnList = "lender_code"
         )]
     )
-    class BorrowerEntity(
+    class LenderEntity(
 
         @Column(name = "linear_id")
         val linearId: String,
 
-        @Column(name = "borrower_code")
-        val borrowerCode: String,
+        @Column(name = "lender_code")
+        val lenderCode: String,
 
         @Column(name = "email")
         val email: String,
@@ -36,20 +36,8 @@ object BorrowerSchemaV1 : MappedSchema(
         @Column(name = "name")
         val name: String,
 
-        @Column(name = "tier")
-        val tier: String,
-
-        @Column(name = "total_borrow")
-        val totalBorrow: Long,
-
-        @Column(name = "is_borrowing")
-        val isBorrowing: Boolean,
-
         @Column(name = "active")
         val active: Boolean,
-
-        @Column(name = "last_borrow_date")
-        val lastBorrowDate: Instant?,
 
         @Column(name = "created_date")
         val createdDate: Instant,
