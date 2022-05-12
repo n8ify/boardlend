@@ -5,10 +5,10 @@ import net.corda.core.serialization.CordaSerializable
 
 @CordaSerializable
 data class CreateBorrowerAccountInfo(
-    val lenderCode: String,
+    val borrowerCode: String,
     val email: String,
     val name: String,
     val tier: String,
     val active: Boolean,
-    val participants: List<Party>
+    val participantLenderCode: String
 )

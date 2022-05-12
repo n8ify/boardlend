@@ -2,13 +2,18 @@ package com.template.flows.borrower
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.accounts.workflows.flows.CreateAccount
+import com.r3.corda.lib.accounts.workflows.flows.RequestKeyForAccount
 import com.r3.corda.lib.accounts.workflows.flows.ShareAccountInfo
+import com.r3.corda.lib.accounts.workflows.flows.ShareStateAndSyncAccounts
+import com.r3.corda.lib.accounts.workflows.internal.accountService
+import com.r3.corda.lib.accounts.workflows.internal.flows.createKeyForAccount
 import com.template.contracts.BorrowerContract
 import com.template.flows.AbstractFlowLogic
 import com.template.info.CreateBorrowerAccountInfo
 import com.template.states.BorrowerState
 import net.corda.core.contracts.Command
 import net.corda.core.flows.*
+import net.corda.core.identity.AnonymousParty
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
@@ -20,6 +25,7 @@ class CreateBorrowerAccountFlow(private val info: CreateBorrowerAccountInfo) : A
 
     companion object {
         object Progress {
+            object GET_LENDER_CORDA_ACCOUNT: ProgressTracker.Step("CGet particapent lender account")
             object CREATE_BORROWER_CORDA_ACCOUNT: ProgressTracker.Step("Create corda borrower account")
             object SHARE_BORROWER_CORDA_ACCOUNT: ProgressTracker.Step("Share corda borrower account to parties")
             object CREATE_BORROWER_STATE: ProgressTracker.Step("Create a borrower's state.")
@@ -35,6 +41,7 @@ class CreateBorrowerAccountFlow(private val info: CreateBorrowerAccountInfo) : A
         }
 
         fun tracker() = ProgressTracker(
+            Progress.GET_LENDER_CORDA_ACCOUNT,
             Progress.CREATE_BORROWER_CORDA_ACCOUNT,
             Progress.SHARE_BORROWER_CORDA_ACCOUNT,
             Progress.CREATE_BORROWER_STATE,
@@ -54,13 +61,23 @@ class CreateBorrowerAccountFlow(private val info: CreateBorrowerAccountInfo) : A
     @Suspendable
     override fun call() : SignedTransaction {
 
+        setCurrentProgressTracker(Progress.GET_LENDER_CORDA_ACCOUNT)
+        val lenderAccount = serviceHub.accountService.accountInfo(info.participantLenderCode).singleOrNull()
+            ?: throw IllegalStateException("Lender participant with code \"${info.participantLenderCode}\" is not found.")
+        val lenderKey = subFlow(RequestKeyForAccount(lenderAccount.state.data))
+        val lenderAnonymousParty = AnonymousParty(lenderKey.owningKey)
+
         setCurrentProgressTracker(Progress.CREATE_BORROWER_CORDA_ACCOUNT)
-        val createAccountTx = subFlow(CreateAccount(name = info.borrowerCode))
+        val createdBorrowerAccountTx = subFlow(CreateAccount(name = info.borrowerCode))
+        val createdBorrowerAccountInfo = createdBorrowerAccountTx.state.data
+        val createdBorrowerKey = serviceHub.createKeyForAccount(createdBorrowerAccountInfo)
+        val createdBorrowerAnonymousParty = AnonymousParty(createdBorrowerKey.owningKey)
 
         setCurrentProgressTracker(Progress.SHARE_BORROWER_CORDA_ACCOUNT)
-        subFlow(ShareAccountInfo(createAccountTx, info.participants))
+        subFlow(ShareAccountInfo(createdBorrowerAccountTx, listOf(lenderAccount.state.data.host)))
 
         setCurrentProgressTracker(Progress.CREATE_BORROWER_STATE)
+        val participants = listOf(createdBorrowerAnonymousParty, lenderAnonymousParty)
         val stateData = BorrowerState.StateData(
             borrowerCode = info.borrowerCode,
             email = info.email,
@@ -75,14 +92,14 @@ class CreateBorrowerAccountFlow(private val info: CreateBorrowerAccountInfo) : A
         )
         val output = BorrowerState(
             stateData = stateData,
-            linearId = createAccountTx.state.data.linearId,
-            participants = info.participants
+            linearId = createdBorrowerAccountInfo.linearId,
+            participants = participants
         )
 
         setCurrentProgressTracker(Progress.TX_BUILDING_TRANSACTION)
         val commands = Command(
             value = BorrowerContract.Commands.CreateBorrowerAccountCommand(),
-            signers = info.participants.map { it.owningKey }
+            signers = participants.map { it.owningKey }
         )
         val txBuilder = TransactionBuilder(notary)
             .addCommand(commands)
@@ -92,12 +109,16 @@ class CreateBorrowerAccountFlow(private val info: CreateBorrowerAccountInfo) : A
         txBuilder.verify(serviceHub)
 
         setCurrentProgressTracker(Progress.SIGS_GATHERING)
-        val ptx = serviceHub.signInitialTransaction(txBuilder)
-        val sessions = info.participants.filter { it != ourIdentity }.map { initiateFlow(it) }
-        val stx = subFlow(CollectSignaturesFlow( ptx, sessions))
+        val ptx = serviceHub.signInitialTransaction(txBuilder, createdBorrowerAnonymousParty.owningKey)
+        val lenderSession = initiateFlow(lenderAnonymousParty)
+        val stx = subFlow(CollectSignaturesFlow( ptx, listOf(lenderSession), listOf(createdBorrowerAnonymousParty.owningKey)))
 
-        setCurrentProgressTracker(Progress.FINALISATION)
-        return subFlow(FinalityFlow(stx, sessions))
+        val ftx = subFlow(FinalityFlow(stx, listOf(lenderSession), Progress.FINALISATION.childProgressTracker()))
+        val state = ftx.tx.outRefsOfType<BorrowerState>().single()
+
+        subFlow(ShareStateAndSyncAccounts(state, lenderAccount.state.data.host))
+
+        return ftx
     }
 
 }

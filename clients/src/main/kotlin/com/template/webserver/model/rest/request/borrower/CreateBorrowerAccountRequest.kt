@@ -6,5 +6,5 @@ data class CreateBorrowerAccountRequest(
     val name: String,
     val tier: String,
     val active: Boolean,
-    val participants: List<String>
+    val participantLenderCode: String
 )

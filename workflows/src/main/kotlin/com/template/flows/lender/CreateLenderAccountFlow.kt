@@ -66,7 +66,7 @@ class CreateLenderAccountFlow(private val info: CreateLenderAccountInfo) : Abstr
 
         setCurrentProgressTracker(Progress.CREATE_LENDER_STATE)
         val stateData = LenderState.StateData(
-            borrowerCode = info.lenderCode,
+            lenderCode = info.lenderCode,
             email = info.email,
             name = info.name,
             active = info.active,

@@ -31,6 +31,7 @@ fun EntityManager.getParametrizedQuery(
 
     queryParams.forEach {
         if (queryStr.contains(":${it.key}")) {
+            println("[${it.key} :: ${it.value}]")
             query.setParameter(it.key, it.value)
         }
     }
@@ -63,14 +64,42 @@ fun String.mapToPredicate(aliasWithFieldName: String, operation: Operation, cast
 
     return this@mapToPredicate to when (operation) {
         Operation.Equal -> " AND ($aliasWithFieldName = $namedParam) "
-        Operation.Like ->  " AND (LOWER($aliasWithFieldName) LIKE CONCAT('%%', LOWER($namedParam), '%%')) "
-        Operation.LikeExact -> " AND ($aliasWithFieldName LIKE CONCAT('%%', $namedParam, '%%')) "
+        Operation.Like -> " AND ($aliasWithFieldName LIKE CONCAT('%%', $namedParam, '%%')) "
         Operation.GreaterThan -> " AND ($aliasWithFieldName > $namedParam) "
         Operation.LessThan -> " AND ($aliasWithFieldName < $namedParam) "
         Operation.GreaterThanOrEqual -> " AND ($aliasWithFieldName >= $namedParam) "
         Operation.LessThanOrEqual -> " AND ($aliasWithFieldName <= $namedParam) "
         Operation.In -> " AND ($aliasWithFieldName IN ($namedParam)) "
-        else -> throw IllegalArgumentException("Unknown Operation \"$operation\"")
+        else -> throw IllegalArgumentException("Unknown Operation \"$operation\" for mapping common predicate")
+    }
+
+}
+
+
+/**
+ * Map request's search term name with given operation (type cast is optional for casting targeted "aliasWithFieldName")
+ * for string case-insensitive where-clause
+ * @param aliasWithFieldName full field name consist with table name alias and column.
+ * @param operation operation for performing criteria.
+ * @param queryParams mutable map of query parameter that will use to replace value with lower case for case-insensitive comparison.
+ * @return pair of request's search term name and predicated statement.
+ * */
+fun String.mapToIgnoreCasePredicate(aliasWithFieldName: String, operation: Operation, queryParams: MutableMap<String, Any?>): Pair<String, String> {
+
+    val namedParam = ":${this@mapToIgnoreCasePredicate}"
+
+    when (queryParams[this@mapToIgnoreCasePredicate])  {
+        is String -> queryParams.replace(this@mapToIgnoreCasePredicate, queryParams[this@mapToIgnoreCasePredicate].toString().trim().toLowerCase())
+        is List<*> -> queryParams.replace(this@mapToIgnoreCasePredicate, (queryParams[this@mapToIgnoreCasePredicate] as List<*>).map { value -> value.toString().toLowerCase() })
+        null -> Unit
+        else -> throw IllegalArgumentException("Neither \"kotlin.String\" nor \"kotlin.collections.List\" is a type of \"${this@mapToIgnoreCasePredicate}\"'s value but ${queryParams[this@mapToIgnoreCasePredicate]} ")
+    }
+
+    return this@mapToIgnoreCasePredicate to when (operation) {
+        Operation.Equal -> " AND (LOWER($aliasWithFieldName) = $namedParam) "
+        Operation.Like -> " AND (LOWER($aliasWithFieldName) LIKE CONCAT('%%', $namedParam, '%%') "
+        Operation.In -> " AND (LOWER($aliasWithFieldName) IN ($namedParam)) "
+        else -> throw IllegalArgumentException("Unknown Operation \"$operation\" for mapping ignore case predicate")
     }
 
 }
@@ -83,17 +112,17 @@ fun String.mapToPredicate(aliasWithFieldName: String, operation: Operation, cast
  *
  * @return pair of request's search term name and predicated statement.
  * */
-fun String.mapToPredicate(aliasWithFieldName: String, dateFormat: String, operation: Operation): Pair<String, String> {
+fun String.mapToDatePredicate(aliasWithFieldName: String, dateFormat: String, operation: Operation): Pair<String, String> {
 
-    val namedParam = ":${this@mapToPredicate}"
+    val namedParam = ":${this@mapToDatePredicate}"
 
-    return this@mapToPredicate to when (operation) {
+    return this@mapToDatePredicate to when (operation) {
         Operation.Equal -> " AND (DATE($aliasWithFieldName) = TO_DATE($namedParam, '$dateFormat'))) "
         Operation.GreaterThan -> " AND (DATE($aliasWithFieldName) > TO_DATE($namedParam, '$dateFormat')) "
         Operation.LessThan -> " AND (DATE($aliasWithFieldName) < TO_DATE($namedParam, '$dateFormat')) "
         Operation.GreaterThanOrEqual -> " AND (DATE($aliasWithFieldName) >= TO_DATE($namedParam, '$dateFormat')) "
         Operation.LessThanOrEqual -> " AND (DATE($aliasWithFieldName) <= TO_DATE($namedParam, '$dateFormat')) "
-        else -> throw IllegalArgumentException("Unknown Operation \"$operation\"")
+        else -> throw IllegalArgumentException("Unknown Operation \"$operation\" for mapping date predicate")
     }
 
 }
@@ -104,11 +133,8 @@ enum class Operation {
     /** Progress field value with "=" operation */
     Equal,
 
-    /** Progress field value with "LIKE" operation */
-    Like,
-
     /** Progress field value with "LIKE (Case Preserved)" operation */
-    LikeExact,
+    Like,
 
     /** Progress field value with "BETWEEN" operation */
     Between,
@@ -146,4 +172,27 @@ fun RepositoryQueryParams.createSortOrderStatement(allowedSortFieldsWithAliases:
         }
     }.joinToString(", ")
 
+}
+
+/**
+ * Lower case value if parameter appear in fieldNames (should be list of string)
+ * @param fieldNames multiple value search type's field names
+ * @return original mapped result with lower parameter (multiple type)
+ * */
+fun Map<String, Any?>.lowerCaseStringMultipleParam(vararg fieldNames: String): Map<String, Any?> {
+    return this@lowerCaseStringMultipleParam
+        .mapValues {
+            if (fieldNames.contains(it.key) && this@lowerCaseStringMultipleParam[it.key] is List<*>) { (it.value as List<*>).map { value -> value.toString().toLowerCase() } }
+            else it.value
+        }
+        .also { println("lowerCaseStringMultipleParam: " + it) }
+}
+
+/**
+ * Lower case all values if parameter appear in fieldNames
+ * @return original mapped result with lower parameter (multiple type)
+ * */
+fun Map<String, Any?>.lowerCaseAllStringMultipleParam(): Map<String, Any?> {
+    return this@lowerCaseAllStringMultipleParam
+        .mapValues { if (this@lowerCaseAllStringMultipleParam[it.key] is List<*>) { it.value.toString().trim().toLowerCase() } else it.value }
 }

@@ -51,24 +51,27 @@ class BorrowerRepository(private val serviceHub: ServiceHub): AbstractBaseReposi
             FROM BorrowerSchemaV1${'$'}BorrowerEntity br
                 INNER JOIN VaultSchemaV1${'$'}VaultStates br_vs ON br_vs.stateRef = br.stateRef 
                     AND br_vs.stateStatus = '${Vault.StateStatus.UNCONSUMED.ordinal}'
+            WHERE 1 = 1
         """.trimIndent()
 
         val queryParams = repositoryQueryParams.getSearchTermsAsMap()
+
         val paramToPredicateMap = mapOf(
             "linearId".mapToPredicate("br.linearId", Operation.Equal),
             "borrowerCode".mapToPredicate("br.borrowerCode", Operation.Equal),
             "email".mapToPredicate("br.email", Operation.Equal),
-            "emailMul".mapToPredicate("br.email", Operation.In),
-            "name".mapToPredicate("br.name", Operation.Like),
             "tier".mapToPredicate("br.tier", Operation.Equal),
             "totalBorrow".mapToPredicate("br.totalBorrow", Operation.Equal, Long::class),
             "isBorrowing".mapToPredicate("br.isBorrowing", Operation.Equal),
             "active".mapToPredicate("br.active", Operation.Equal),
             "lastBorrowDate".mapToPredicate("br.lastBorrowDate", Operation.Equal),
-            "createdDateFrom".mapToPredicate("br.createdDate", yyyy_MM_dd_Dash, Operation.GreaterThanOrEqual),
-            "createdDateTo".mapToPredicate("br.createdDate", yyyy_MM_dd_Dash, Operation.LessThanOrEqual),
-            "modifiedDateFrom".mapToPredicate("br.modifiedDate", yyyy_MM_dd_Dash, Operation.GreaterThanOrEqual),
-            "modifiedDateTo".mapToPredicate("br.modifiedDate", yyyy_MM_dd_Dash, Operation.LessThanOrEqual)
+            "name".mapToPredicate("br.name", Operation.Like),
+            "emailMul".mapToIgnoreCasePredicate("br.email", Operation.In, queryParams),
+            "nameMul".mapToIgnoreCasePredicate("br.name", Operation.In, queryParams),
+            "createdDateFrom".mapToDatePredicate("br.createdDate", yyyy_MM_dd_Dash, Operation.GreaterThanOrEqual),
+            "createdDateTo".mapToDatePredicate("br.createdDate", yyyy_MM_dd_Dash, Operation.LessThanOrEqual),
+            "modifiedDateFrom".mapToDatePredicate("br.modifiedDate", yyyy_MM_dd_Dash, Operation.GreaterThanOrEqual),
+            "modifiedDateTo".mapToDatePredicate("br.modifiedDate", yyyy_MM_dd_Dash, Operation.LessThanOrEqual)
         )
         val sortColumnAndOrder = repositoryQueryParams.createSortOrderStatement(listOf(
             allowedBorrowerSortFields to "br"

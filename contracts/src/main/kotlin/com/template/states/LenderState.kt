@@ -1,7 +1,9 @@
 package com.template.states
 
+import com.template.contracts.LenderContract
 import com.template.info.UpdateBorrowerAccountInfo
 import com.template.schemas.BorrowerSchemaV1
+import com.template.schemas.LenderSchemaV1
 import net.corda.core.contracts.BelongsToContract
 import net.corda.core.contracts.LinearState
 import net.corda.core.contracts.UniqueIdentifier
@@ -12,7 +14,7 @@ import net.corda.core.schemas.QueryableState
 import net.corda.core.serialization.CordaSerializable
 import java.time.Instant
 
-@BelongsToContract()
+@BelongsToContract(LenderContract::class)
 data class LenderState(
     val stateData: StateData,
     override val participants: List<AbstractParty>,
@@ -21,7 +23,7 @@ data class LenderState(
 
     @CordaSerializable
     data class StateData(
-        val borrowerCode: String,
+        val lenderCode: String,
         val email: String,
         val name: String,
         val active: Boolean,
@@ -33,16 +35,12 @@ data class LenderState(
     override fun generateMappedObject(schema: MappedSchema): PersistentState {
         return when (schema) {
             is BorrowerSchemaV1 -> {
-                BorrowerSchemaV1.BorrowerEntity(
+                LenderSchemaV1.LenderEntity(
                     linearId = linearId.toString(),
-                    borrowerCode = stateData.borrowerCode,
+                    lenderCode = stateData.lenderCode,
                     email = stateData.email,
                     name = stateData.name,
-                    tier = stateData.tier,
-                    totalBorrow = stateData.totalBorrow,
-                    isBorrowing = stateData.isBorrowing,
                     active = stateData.active,
-                    lastBorrowDate = stateData.lastBorrowDate,
                     createdDate = stateData.createdDate,
                     modifiedDate = stateData.modifiedDate,
                     version = stateData.version

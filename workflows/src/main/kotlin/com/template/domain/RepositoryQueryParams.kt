@@ -19,8 +19,9 @@ data class RepositoryQueryParams(val startPage: Int = 1, val pageSize: Int = 100
         ASC, DESC
     }
 
-    fun getSearchTermsAsMap(): Map<String, Any?> {
-        return searchTerms.map { it.searchTermFieldName to it.searchTermParam }.toMap()
+    fun getSearchTermsAsMap(): MutableMap<String, Any?> {
+        return searchTerms.associate { it.searchTermFieldName to it.searchTermParam }.toMutableMap().also {
+            println(it)
+        }
     }
-
 }

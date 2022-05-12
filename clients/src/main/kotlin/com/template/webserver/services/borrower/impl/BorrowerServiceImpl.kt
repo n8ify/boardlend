@@ -31,7 +31,7 @@ class BorrowerServiceImpl : AbstractBaseService(), BorrowerService {
             name = request.name,
             tier = request.tier,
             active = request.active,
-            participants = request.participants.map { obtainPartyByName(it) }
+            participantLenderCode = request.participantLenderCode
         )
 
         val result = rpc.proxy.startTrackedFlow(::CreateBorrowerAccountFlow, createBorrowerAccountInfo)
