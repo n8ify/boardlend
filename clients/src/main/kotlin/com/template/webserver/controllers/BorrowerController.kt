@@ -1,9 +1,9 @@
 package com.template.webserver.controllers
 
-import com.template.domain.RepositoryQueryParams
 import com.template.domain.PaginatedResponse
 import com.template.schemas.BorrowerSchemaV1
 import com.template.states.BorrowerState
+import com.template.webserver.model.rest.request.BasicRepositoryQueryRequest
 import com.template.webserver.model.rest.request.borrower.CreateBorrowerAccountRequest
 import com.template.webserver.model.rest.request.borrower.UpdateBorrowerAccountRequest
 import com.template.webserver.model.rest.response.CommonResponse
@@ -28,7 +28,7 @@ class BorrowerController(private val service: BorrowerService) {
     }
 
     @PostMapping(value = ["/inquiryPaginated"], produces = ["application/json"])
-    fun inquiryPaginated(@RequestBody request: RepositoryQueryParams): PaginatedResponse<BorrowerSchemaV1.BorrowerEntity> {
+    fun inquiryPaginated(@RequestBody request: BasicRepositoryQueryRequest): PaginatedResponse<BorrowerSchemaV1.BorrowerEntity> {
         return service.inquiryBorrowerPaginated(request)
     }
 

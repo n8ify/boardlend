@@ -1,6 +1,5 @@
 package com.template.webserver.services.borrower.impl
 
-import com.template.domain.RepositoryQueryParams
 import com.template.domain.PaginatedResponse
 import com.template.flows.borrower.CreateBorrowerAccountFlow
 import com.template.flows.borrower.GetBorrowerPaginatedFlow
@@ -11,6 +10,7 @@ import com.template.schemas.BorrowerSchemaV1
 import com.template.states.BorrowerState
 import com.template.webserver.constants.enums.ResponseCode
 import com.template.webserver.constants.enums.ResponseStatus
+import com.template.webserver.model.rest.request.BasicRepositoryQueryRequest
 import com.template.webserver.model.rest.request.borrower.CreateBorrowerAccountRequest
 import com.template.webserver.model.rest.request.borrower.UpdateBorrowerAccountRequest
 import com.template.webserver.model.rest.response.CommonResponse
@@ -69,7 +69,7 @@ class BorrowerServiceImpl : AbstractBaseService(), BorrowerService {
         )
     }
 
-    override fun inquiryBorrowerPaginated(request: RepositoryQueryParams): PaginatedResponse<BorrowerSchemaV1.BorrowerEntity> {
-        return rpc.proxy.startFlow(::GetBorrowerPaginatedFlow, request).returnValue.getOrThrow()
+    override fun inquiryBorrowerPaginated(request: BasicRepositoryQueryRequest): PaginatedResponse<BorrowerSchemaV1.BorrowerEntity> {
+        return rpc.proxy.startFlow(::GetBorrowerPaginatedFlow, request.toRepositoryQueryParams()).returnValue.getOrThrow()
     }
 }

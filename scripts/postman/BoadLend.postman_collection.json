@@ -1,0 +1,225 @@
+{
+	"info": {
+		"_postman_id": "08400d56-5b39-4e6c-bbaa-af3e1b5dc07d",
+		"name": "BoadLend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Borrower Account",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"borrowerCode\": \"BRW202205120000011\",\r\n    \"name\": \"Forecast Jill\",\r\n    \"email\": \"forcast_j@gmail.com\",\r\n    \"tier\": \"VIP\",\r\n    \"active\": true,\r\n    \"participantLenderCode\": \"LEN20220509000001\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/borrower/create",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"borrower",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Lender Account",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"lenderCode\": \"LEN20220509000001\",\r\n    \"name\": \"Cunning Carlos\",\r\n    \"email\": \"cunning_c@gmail.com\",\r\n    \"active\": true,\r\n    \"participants\": [\"borrower\", \"lender\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/lender/create",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"lender",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Modify Borrower Account",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"linearId\": \"0f3bc221-3353-489a-bfa7-b63e454b429f\",\r\n    \"name\": null,\r\n    \"email\": null,\r\n    \"tier\": \"VIP\",\r\n    \"active\": true,\r\n    \"participants\": [\"borrower\", \"lender\"],\r\n    \"version\": 2\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/borrower/update",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"borrower",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create New Board Game Information",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"boardGameCode\": \"CATAN-002\",\r\n    \"name\": \"Catan\",\r\n    \"description\": \"The Settlers of Catan, Players try to be the dominant force on the island of Catan by building settlements, cities, and roads.\",\r\n    \"genre\": \"EngineBuilder\",\r\n    \"minPlayer\": 2,\r\n    \"maxPlayer\": 4,\r\n    \"status\": \"Borrowable\",\r\n    \"productType\": \"MainGame\",\r\n    \"additionalProperties\": \"{}\",\r\n    \"purchasedDate\": \"2022-05-05T18:23:00Z\",\r\n    \"participants\": [\"borrower\", \"lender\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/boardgame/create",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"boardgame",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validate State Status",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"trxReference\" : {\r\n        \"outputIndex\": 0,\r\n        \"transactionId\": \"E714492803821489C3A156FA7F7ADE8A9093E89AD0F64BD56BE4033CCB824A54\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/state/checkStateStatusByTrxReference",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"state",
+						"checkStateStatusByTrxReference"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Inquiry Borrower Paginated",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"startPage\": 1,\r\n    \"pageSize\": 10,\r\n    \"searchTermList\": [\r\n\r\n    ],\r\n    \"sortFieldList\": [\r\n        {\r\n            \"sortFieldName\": \"modifiedDate\",\r\n            \"sortOrder\": \"DESC\"\r\n        },\r\n        {\r\n            \"sortFieldName\": \"createdDate\",\r\n            \"sortOrder\": \"ASC\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/borrower/inquiryPaginated",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"borrower",
+						"inquiryPaginated"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Borrow Board Game Paginated",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"borrowerCode\": \"BRW20220506000001\",\r\n    \"boardGameCodes\": [ \"CATAN-002\" ],\r\n    \"lastReturnedDate\": \"2022-05-07T17:23:00Z\",\r\n    \"participants\": [ \"lender\" ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/boardgame/borrow",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"boardgame",
+						"borrow"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Return Board Game Paginated",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"borrowerCode\": \"BRW20220506000004\",\r\n    \"boardGameCodes\": [ \"CATAN-002\" ],\r\n    \"participants\": [ \"lender\" ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/boardgame/return",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"boardgame",
+						"return"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

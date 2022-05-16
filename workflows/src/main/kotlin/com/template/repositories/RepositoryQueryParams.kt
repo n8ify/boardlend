@@ -1,4 +1,4 @@
-package com.template.domain
+package com.template.repositories
 
 import net.corda.core.serialization.CordaSerializable
 
@@ -15,13 +15,11 @@ data class RepositoryQueryParams(val startPage: Int = 1, val pageSize: Int = 100
     data class SortTerm(val sortFieldName: String, val sortOrder: SortOrder)
 
     @CordaSerializable
-    enum class SortOrder {
-        ASC, DESC
+    enum class SortOrder { ASC, DESC }
+
+    fun getSearchTermsAsMap(vararg additionalParams: Pair<String, Any?>): MutableMap<String, Any?> {
+        return (searchTerms.associate { it.searchTermFieldName to it.searchTermParam }  + additionalParams)
+            .toMutableMap()
     }
 
-    fun getSearchTermsAsMap(): MutableMap<String, Any?> {
-        return searchTerms.associate { it.searchTermFieldName to it.searchTermParam }.toMutableMap().also {
-            println(it)
-        }
-    }
 }

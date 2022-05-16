@@ -1,6 +1,5 @@
 package com.template.repositories
 
-import com.template.domain.RepositoryQueryParams
 import javax.persistence.EntityManager
 import javax.persistence.Query
 import kotlin.reflect.KClass
@@ -31,7 +30,6 @@ fun EntityManager.getParametrizedQuery(
 
     queryParams.forEach {
         if (queryStr.contains(":${it.key}")) {
-            println("[${it.key} :: ${it.value}]")
             query.setParameter(it.key, it.value)
         }
     }
@@ -127,6 +125,17 @@ fun String.mapToDatePredicate(aliasWithFieldName: String, dateFormat: String, op
 
 }
 
+/**
+ * Create predicate list by column string list with single operation
+ * @param alias table alias associated with column list.
+ * @param operation operation for performing criteria (apply to all column).
+ * @return map of request's search term name and predicated statement.
+ * */
+fun List<String>.mapColumnListToPredicates(alias: String, operation: Operation): Map<String, String> {
+    return this@mapColumnListToPredicates.associate { it.mapToPredicate("$alias.$it", operation) }
+}
+
+
 /** HQL criteria filtering operators */
 enum class Operation {
 
@@ -153,6 +162,7 @@ enum class Operation {
 
     /** Progress field value with "IN" operation */
     In
+
 }
 
 /**
@@ -172,27 +182,4 @@ fun RepositoryQueryParams.createSortOrderStatement(allowedSortFieldsWithAliases:
         }
     }.joinToString(", ")
 
-}
-
-/**
- * Lower case value if parameter appear in fieldNames (should be list of string)
- * @param fieldNames multiple value search type's field names
- * @return original mapped result with lower parameter (multiple type)
- * */
-fun Map<String, Any?>.lowerCaseStringMultipleParam(vararg fieldNames: String): Map<String, Any?> {
-    return this@lowerCaseStringMultipleParam
-        .mapValues {
-            if (fieldNames.contains(it.key) && this@lowerCaseStringMultipleParam[it.key] is List<*>) { (it.value as List<*>).map { value -> value.toString().toLowerCase() } }
-            else it.value
-        }
-        .also { println("lowerCaseStringMultipleParam: " + it) }
-}
-
-/**
- * Lower case all values if parameter appear in fieldNames
- * @return original mapped result with lower parameter (multiple type)
- * */
-fun Map<String, Any?>.lowerCaseAllStringMultipleParam(): Map<String, Any?> {
-    return this@lowerCaseAllStringMultipleParam
-        .mapValues { if (this@lowerCaseAllStringMultipleParam[it.key] is List<*>) { it.value.toString().trim().toLowerCase() } else it.value }
 }

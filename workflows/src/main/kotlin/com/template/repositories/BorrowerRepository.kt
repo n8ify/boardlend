@@ -1,7 +1,6 @@
 package com.template.repositories
 
 import com.template.constants.DateFormatConstant.yyyy_MM_dd_Dash
-import com.template.domain.RepositoryQueryParams
 import com.template.domain.PaginatedResponse
 import com.template.schemas.BorrowerSchemaV1
 import com.template.states.BorrowerState
