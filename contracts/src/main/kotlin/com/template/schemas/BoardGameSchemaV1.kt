@@ -35,7 +35,7 @@ object BoardGameSchemaV1 : MappedSchema(
         @Column(name = "name")
         val name: String,
 
-        @Column(name = "description")
+        @Column(name = "description", columnDefinition = "TEXT")
         val description: String,
 
         @Column(name = "genre")
