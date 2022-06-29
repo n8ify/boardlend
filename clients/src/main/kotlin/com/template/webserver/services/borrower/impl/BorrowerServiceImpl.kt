@@ -28,6 +28,7 @@ class BorrowerServiceImpl : AbstractBaseService(), BorrowerService {
         val createBorrowerAccountInfo = CreateBorrowerAccountInfo(
             borrowerCode = request.borrowerCode,
             email = request.email,
+            tel = request.tel,
             name = request.name,
             tier = request.tier,
             active = request.active,

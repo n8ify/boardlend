@@ -7,6 +7,7 @@ import net.corda.core.serialization.CordaSerializable
 data class CreateBorrowerAccountInfo(
     val borrowerCode: String,
     val email: String,
+    val tel: String,
     val name: String,
     val tier: String,
     val active: Boolean,

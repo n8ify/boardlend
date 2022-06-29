@@ -3,6 +3,7 @@ package com.template.states
 import com.template.contracts.BorrowerContract
 import com.template.info.UpdateBorrowerAccountInfo
 import com.template.schemas.BorrowerSchemaV1
+import com.template.schemas.BorrowerSchemaV2
 import net.corda.core.contracts.BelongsToContract
 import net.corda.core.contracts.LinearState
 import net.corda.core.contracts.UniqueIdentifier
@@ -24,6 +25,7 @@ data class BorrowerState(
     data class StateData(
         val borrowerCode: String,
         val email: String,
+        val tel: String,
         val name: String,
         val tier: String,
         val totalBorrow: Long,
@@ -31,8 +33,7 @@ data class BorrowerState(
         val active: Boolean,
         val lastBorrowDate: Instant?,
         val createdDate: Instant,
-        val modifiedDate: Instant?,
-        val version: Int = 0
+        val modifiedDate: Instant?
     )
 
     override fun generateMappedObject(schema: MappedSchema): PersistentState {
@@ -49,8 +50,23 @@ data class BorrowerState(
                     active = stateData.active,
                     lastBorrowDate = stateData.lastBorrowDate,
                     createdDate = stateData.createdDate,
-                    modifiedDate = stateData.modifiedDate,
-                    version = stateData.version
+                    modifiedDate = stateData.modifiedDate
+                )
+            }
+            is BorrowerSchemaV2 -> {
+                BorrowerSchemaV2.BorrowerEntity(
+                    linearId = linearId.toString(),
+                    borrowerCode = stateData.borrowerCode,
+                    email = stateData.email,
+                    name = stateData.name,
+                    tel = stateData.tel,
+                    tier = stateData.tier,
+                    totalBorrow = stateData.totalBorrow,
+                    isBorrowing = stateData.isBorrowing,
+                    active = stateData.active,
+                    lastBorrowDate = stateData.lastBorrowDate,
+                    createdDate = stateData.createdDate,
+                    modifiedDate = stateData.modifiedDate
                 )
             }
             else -> throw IllegalArgumentException("Unrecognised schema $schema")
@@ -58,7 +74,7 @@ data class BorrowerState(
     }
 
     override fun supportedSchemas(): Iterable<MappedSchema> {
-        return listOf(BorrowerSchemaV1)
+        return listOf(BorrowerSchemaV1, BorrowerSchemaV2)
     }
 
     fun modify(info: UpdateBorrowerAccountInfo): BorrowerState {
@@ -68,8 +84,7 @@ data class BorrowerState(
                 name = info.name ?: stateData.name,
                 tier = info.tier ?: stateData.tier,
                 active = info.active ?: stateData.active,
-                modifiedDate = Instant.now(),
-                version = info.version
+                modifiedDate = Instant.now()
             )
         )
     }

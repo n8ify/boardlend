@@ -7,18 +7,16 @@ import org.hibernate.annotations.DynamicInsert
 import java.time.Instant
 import javax.persistence.*
 
-object BorrowerSchema
-
-object BorrowerSchemaV1 : MappedSchema(
+object BorrowerSchemaV2 : MappedSchema(
     schemaFamily = BorrowerSchema::class.java,
-    version = 1,
+    version = 2,
     mappedTypes = listOf(BorrowerEntity::class.java)
 ) {
 
     @Entity
     @DynamicInsert
     @Table(
-        name = "borrower",
+        name = "borrower_2",
         indexes = [Index(name = "idx_linear_id", columnList = "linear_id"), Index(
             name = "idx_borrower_code",
             columnList = "borrower_code"
@@ -34,6 +32,9 @@ object BorrowerSchemaV1 : MappedSchema(
 
         @Column(name = "email")
         val email: String,
+
+        @Column(name = "tel")
+        val tel: String,
 
         @Column(name = "name")
         val name: String,

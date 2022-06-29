@@ -78,3 +78,5 @@ lib
 
 build/
 localNode/
+djvm/
+process-id

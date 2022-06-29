@@ -81,6 +81,7 @@ class CreateBorrowerAccountFlow(private val info: CreateBorrowerAccountInfo) : A
         val stateData = BorrowerState.StateData(
             borrowerCode = info.borrowerCode,
             email = info.email,
+            tel = info.tel,
             name = info.name,
             tier = info.tier,
             totalBorrow = 0,
