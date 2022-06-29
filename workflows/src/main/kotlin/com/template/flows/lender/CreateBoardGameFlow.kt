@@ -60,6 +60,7 @@ class CreateBoardGameFlow(private val info: CreateBoardGameInfo): AbstractFlowLo
             status = info.status,
             productType = info.productType,
             additionalProperties = info.additionalProperties,
+            mustReturnedDate = Instant.now(),
             lastReturnedDate = null,
             purchasedDate = info.purchasedDate,
             createdDate = Instant.now(),

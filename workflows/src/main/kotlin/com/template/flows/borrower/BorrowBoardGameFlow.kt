@@ -83,7 +83,7 @@ class BorrowBoardGameFlow(private val info: BorrowBoardGameInfo): AbstractFlowLo
         val stateData = boardGameInputStates.map {
             it.state.data.stateData.copy(
                 status = BoardGameStatus.Borrowing.name,
-                lastReturnedDate = info.lastReturnedDate,
+                mustReturnedDate = info.mustReturnedDate,
                 modifiedDate = Instant.now()
             )
         }

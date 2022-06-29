@@ -8,6 +8,6 @@ import java.time.Instant
 data class BorrowBoardGameInfo (
     val borrowerCode: String,
     val boardGameCodes: List<String>,
-    val lastReturnedDate: Instant,
+    val mustReturnedDate: Instant,
     val participants: List<Party>
 )

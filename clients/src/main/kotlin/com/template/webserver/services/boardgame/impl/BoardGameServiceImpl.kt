@@ -57,7 +57,7 @@ class BoardGameServiceImpl : AbstractBaseService(), BoardGameService {
         val info = BorrowBoardGameInfo(
             borrowerCode = request.borrowerCode ,
             boardGameCodes = request.boardGameCodes ,
-            lastReturnedDate = request.lastReturnedDate ,
+            mustReturnedDate = request.mustReturnedDate ,
             participants = request.participants.map { obtainPartyByName(it) }
         )
 
