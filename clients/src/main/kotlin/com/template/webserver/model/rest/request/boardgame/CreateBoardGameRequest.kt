@@ -16,5 +16,6 @@ data class CreateBoardGameRequest(
     val productType: BoardGameProductType,
     val additionalProperties: String,
     val purchasedDate: Instant,
+    val lenderId: String,
     val participants: List<String>
 )

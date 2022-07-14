@@ -36,6 +36,7 @@ class BoardGameServiceImpl : AbstractBaseService(), BoardGameService {
             productType = request.productType.name ,
             additionalProperties = request.additionalProperties ,
             purchasedDate = request.purchasedDate ,
+            lenderId = request.lenderId,
             participants = request.participants.map { obtainPartyByName(it) }
         )
 

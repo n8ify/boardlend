@@ -17,6 +17,7 @@ import java.time.Instant
 @BelongsToContract(BoardGameContract::class)
 data class BoardGameState(
     val stateData: StateData,
+    val lenderReference: LinearPointer<LenderState>,
     override val linearId: UniqueIdentifier = UniqueIdentifier(),
     override val participants: List<AbstractParty>
 ) : LinearState, QueryableState, SchedulableState {

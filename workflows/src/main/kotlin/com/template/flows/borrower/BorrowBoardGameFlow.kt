@@ -80,16 +80,13 @@ class BorrowBoardGameFlow(private val info: BorrowBoardGameInfo): AbstractFlowLo
         val boardGameInputStates = info.boardGameCodes.map { boardGameRepository.getBoardGameByBoardGameCode(it) }
 
         setCurrentProgressTracker(Progress.MODIFY_BORROW_BOARDGAME_STATE)
-        val stateData = boardGameInputStates.map {
-            it.state.data.stateData.copy(
-                status = BoardGameStatus.Borrowing.name,
-                mustReturnedDate = info.mustReturnedDate,
-                modifiedDate = Instant.now()
-            )
-        }
-        val boardGameOutputStates = stateData.map {
-            BoardGameState(
-                stateData = it,
+        val boardGameOutputStates = boardGameInputStates.map {
+            it.state.data.copy(
+                stateData = it.state.data.stateData.copy(
+                    status = BoardGameStatus.Borrowing.name,
+                    mustReturnedDate = info.mustReturnedDate,
+                    modifiedDate = Instant.now()
+                ),
                 participants = info.participants + borrowerAccountParty
             )
         }

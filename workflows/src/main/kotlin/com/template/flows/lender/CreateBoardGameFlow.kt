@@ -4,8 +4,12 @@ import co.paralleluniverse.fibers.Suspendable
 import com.template.contracts.BoardGameContract
 import com.template.flows.AbstractFlowLogic
 import com.template.info.CreateBoardGameInfo
+import com.template.repositories.LenderRepository
 import com.template.states.BoardGameState
+import com.template.states.LenderState
 import net.corda.core.contracts.Command
+import net.corda.core.contracts.LinearPointer
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
@@ -49,6 +53,8 @@ class CreateBoardGameFlow(private val info: CreateBoardGameInfo): AbstractFlowLo
     @Suspendable
     override fun call(): SignedTransaction {
 
+        val lenderRepository = serviceHub.cordaService(LenderRepository::class.java)
+
         setCurrentProgressTracker(Progress.CREATE_BOARDGAME_STATE)
         val stateData = BoardGameState.StateData(
             boardGameCode = info.boardGameCode,
@@ -68,6 +74,7 @@ class CreateBoardGameFlow(private val info: CreateBoardGameInfo): AbstractFlowLo
         )
         val output = BoardGameState(
             stateData = stateData,
+            lenderReference = LinearPointer(UniqueIdentifier.fromString(info.lenderId), LenderState::class.java),
             participants = info.participants
         )
 

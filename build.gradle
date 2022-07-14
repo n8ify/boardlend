@@ -186,7 +186,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
                 "StartFlow.com.template.flows.GetStateStatusFlow",
                 "StartFlow.com.template.flows.lender.CreateBoardGameFlow",
                 "StartFlow.com.template.flows.borrower.GetBorrowerPaginatedFlow",
-                "StartFlow.com.template.flows.lender.CreateLenderAccountFlow"]]]
+                "StartFlow.com.template.flows.lender.CreateLenderAccountFlow",
+                "StartFlow.com.template.flows.lender.UpdateLenderAccountFlow"]]]
         extraConfig = [
                 'dataSourceProperties.dataSourceClassName': 'org.postgresql.ds.PGSimpleDataSource',
                 'dataSourceProperties.dataSource.url'     : 'jdbc:postgresql://n8ify.com:5400/boardlend_lender_cordapp',

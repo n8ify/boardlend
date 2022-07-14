@@ -16,5 +16,6 @@ data class CreateBoardGameInfo (
     val productType: String,
     val additionalProperties: String,
     val purchasedDate: Instant,
+    val lenderId: String,
     val participants: List<Party>
 )

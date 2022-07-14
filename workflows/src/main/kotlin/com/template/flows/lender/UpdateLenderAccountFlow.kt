@@ -8,6 +8,8 @@ import com.template.contracts.LenderContract
 import com.template.flows.AbstractFlowLogic
 import com.template.info.CreateBorrowerAccountInfo
 import com.template.info.CreateLenderAccountInfo
+import com.template.info.UpdateLenderAccountInfo
+import com.template.repositories.LenderRepository
 import com.template.states.BorrowerState
 import com.template.states.LenderState
 import net.corda.core.contracts.Command
@@ -19,13 +21,12 @@ import java.time.Instant
 
 @InitiatingFlow
 @StartableByRPC
-class CreateLenderAccountFlow(private val info: CreateLenderAccountInfo) : AbstractFlowLogic<SignedTransaction>() {
+class UpdateLenderAccountFlow(private val info: UpdateLenderAccountInfo) : AbstractFlowLogic<SignedTransaction>() {
 
     companion object {
         object Progress {
-            object CREATE_LENDER_CORDA_ACCOUNT: ProgressTracker.Step("Create corda lender account")
-            object SHARE_LENDER_CORDA_ACCOUNT: ProgressTracker.Step("Share corda lender account to parties")
-            object CREATE_LENDER_STATE: ProgressTracker.Step("Create a lender's state.")
+            object GET_EXISTED_LENDER_ACCOUNT: ProgressTracker.Step("Get existed lender account")
+            object MODIFY_LENDER_STATE: ProgressTracker.Step("Modify a lender's state.")
             object TX_BUILDING_TRANSACTION  : ProgressTracker.Step("Building transaction.")
             object TX_VERIFICATION  : ProgressTracker.Step("Verifying transaction.")
             object SIGS_GATHERING  : ProgressTracker.Step("Gathering a transaction's signatures.") {
@@ -38,9 +39,8 @@ class CreateLenderAccountFlow(private val info: CreateLenderAccountInfo) : Abstr
         }
 
         fun tracker() = ProgressTracker(
-            Progress.CREATE_LENDER_CORDA_ACCOUNT,
-            Progress.SHARE_LENDER_CORDA_ACCOUNT,
-            Progress.CREATE_LENDER_STATE,
+            Progress.GET_EXISTED_LENDER_ACCOUNT,
+            Progress.MODIFY_LENDER_STATE,
             Progress.TX_BUILDING_TRANSACTION,
             Progress.TX_VERIFICATION,
             Progress.SIGS_GATHERING,
@@ -57,41 +57,31 @@ class CreateLenderAccountFlow(private val info: CreateLenderAccountInfo) : Abstr
     @Suspendable
     override fun call() : SignedTransaction {
 
-        setCurrentProgressTracker(Progress.CREATE_LENDER_CORDA_ACCOUNT)
-        val createAccountTx = subFlow(CreateAccount(name = info.lenderCode))
+        val lenderRepository = serviceHub.cordaService(LenderRepository::class.java)
 
-        setCurrentProgressTracker(Progress.SHARE_LENDER_CORDA_ACCOUNT)
-        subFlow(ShareAccountInfo(createAccountTx, info.participants))
+        setCurrentProgressTracker(Progress.GET_EXISTED_LENDER_ACCOUNT)
+        val existedLenderStateAndRef = lenderRepository.getLenderByCode(info.lenderCode)
+        val existedLenderState = existedLenderStateAndRef.state.data
 
-        setCurrentProgressTracker(Progress.CREATE_LENDER_STATE)
-        val stateData = LenderState.StateData(
-            lenderCode = info.lenderCode,
-            email = info.email,
-            name = info.name,
-            active = info.active,
-            createdDate = Instant.now(),
-            modifiedDate = null
-        )
-        val output = LenderState(
-            stateData = stateData,
-            participants = info.participants
-        )
+        setCurrentProgressTracker(Progress.MODIFY_LENDER_STATE)
+        val newLenderState = existedLenderState.modify(info)
 
         setCurrentProgressTracker(Progress.TX_BUILDING_TRANSACTION)
         val commands = Command(
-            value = LenderContract.Commands.CreateLenderAccountCommand(),
-            signers = info.participants.map { it.owningKey }
+            value = LenderContract.Commands.UpdateLenderAccountCommand(),
+            signers = existedLenderState.participants.map { it.owningKey }
         )
         val txBuilder = TransactionBuilder(notary)
             .addCommand(commands)
-            .addOutputState(output, LenderContract.ID)
+            .addInputState(existedLenderStateAndRef)
+            .addOutputState(newLenderState, LenderContract.ID)
 
         setCurrentProgressTracker(Progress.TX_VERIFICATION)
         txBuilder.verify(serviceHub)
 
         setCurrentProgressTracker(Progress.SIGS_GATHERING)
         val ptx = serviceHub.signInitialTransaction(txBuilder)
-        val sessions = info.participants.filter { it != ourIdentity }.map { initiateFlow(it) }
+        val sessions = existedLenderState.participants.filter { it != ourIdentity }.map { initiateFlow(it) }
         val stx = subFlow(CollectSignaturesFlow( ptx, sessions))
 
         setCurrentProgressTracker(Progress.FINALISATION)
@@ -100,8 +90,8 @@ class CreateLenderAccountFlow(private val info: CreateLenderAccountInfo) : Abstr
 
 }
 
-@InitiatedBy(CreateLenderAccountFlow::class)
-class CreateLenderAccountFlowResponder(private val counterPartySessions: FlowSession) : FlowLogic<SignedTransaction>() {
+@InitiatedBy(UpdateLenderAccountFlow::class)
+class UpdateLenderAccountFlowResponder(private val counterPartySessions: FlowSession) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {

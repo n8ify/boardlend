@@ -2,6 +2,7 @@ package com.template.states
 
 import com.template.contracts.LenderContract
 import com.template.info.UpdateBorrowerAccountInfo
+import com.template.info.UpdateLenderAccountInfo
 import com.template.schemas.BorrowerSchemaV1
 import com.template.schemas.LenderSchemaV1
 import net.corda.core.contracts.BelongsToContract
@@ -52,6 +53,16 @@ data class LenderState(
 
     override fun supportedSchemas(): Iterable<MappedSchema> {
         return listOf(BorrowerSchemaV1)
+    }
+
+    fun modify(info: UpdateLenderAccountInfo): LenderState {
+        return copy(
+            stateData = stateData.copy(
+                email = info.email ?: stateData.email,
+                name = info.name ?: stateData.name,
+                active = info.active ?: stateData.active
+            )
+        )
     }
 
 }

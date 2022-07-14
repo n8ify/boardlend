@@ -22,24 +22,26 @@ import java.time.Instant
 
 @InitiatingFlow
 @StartableByRPC
-class ReturnBoardGameFlow(private val info: ReturnBoardGameInfo): AbstractFlowLogic<SignedTransaction>() {
+class ReturnBoardGameFlow(private val info: ReturnBoardGameInfo) : AbstractFlowLogic<SignedTransaction>() {
 
 
     companion object {
         object Progress {
-            object GET_BORROWER_STATE: ProgressTracker.Step("Get borrower state.")
-            object MODIFY_BORROW_BORROWING_STATE: ProgressTracker.Step("Modify borrower's returning state.")
-            object GET_TO_BORROW_BOARDGAME_STATE: ProgressTracker.Step("Get to borrow board game state.")
-            object MODIFY_BORROW_BOARDGAME_STATE: ProgressTracker.Step("Modify borrow board game state.")
-            object TX_BUILDING_TRANSACTION  : ProgressTracker.Step("Building transaction.")
-            object TX_VERIFICATION  : ProgressTracker.Step("Verifying transaction.")
-            object SIGS_GATHERING  : ProgressTracker.Step("Gathering a transaction's signatures.") {
+            object GET_BORROWER_STATE : ProgressTracker.Step("Get borrower state.")
+            object MODIFY_BORROW_BORROWING_STATE : ProgressTracker.Step("Modify borrower's returning state.")
+            object GET_TO_BORROW_BOARDGAME_STATE : ProgressTracker.Step("Get to borrow board game state.")
+            object MODIFY_BORROW_BOARDGAME_STATE : ProgressTracker.Step("Modify borrow board game state.")
+            object TX_BUILDING_TRANSACTION : ProgressTracker.Step("Building transaction.")
+            object TX_VERIFICATION : ProgressTracker.Step("Verifying transaction.")
+            object SIGS_GATHERING : ProgressTracker.Step("Gathering a transaction's signatures.") {
                 override fun childProgressTracker(): ProgressTracker = CollectSignaturesFlow.tracker()
             }
-            object FINALISATION   : ProgressTracker.Step("Finalisation") {
+
+            object FINALISATION : ProgressTracker.Step("Finalisation") {
                 override fun childProgressTracker(): ProgressTracker = FinalityFlow.tracker()
             }
-            object FLOW_COMPLETED: ProgressTracker.Step("Flow Completed")
+
+            object FLOW_COMPLETED : ProgressTracker.Step("Flow Completed")
         }
 
         fun tracker() = ProgressTracker(
@@ -79,22 +81,21 @@ class ReturnBoardGameFlow(private val info: ReturnBoardGameInfo): AbstractFlowLo
         val boardGameInputStates = info.boardGameCodes.map { boardGameRepository.getBoardGameByBoardGameCode(it) }
 
         setCurrentProgressTracker(Progress.MODIFY_BORROW_BOARDGAME_STATE)
-        val stateData = boardGameInputStates.map {
-            it.state.data.stateData.copy(
-                status = BoardGameStatus.Borrowable.name,
-                lastReturnedDate = Instant.now(),
-                modifiedDate = Instant.now()
-            )
-        }
-        val boardGameOutputStates = stateData.map {
-            BoardGameState(
-                stateData = it,
+        val boardGameOutputStates = boardGameInputStates.map {
+
+            it.state.data.copy(
+                stateData = it.state.data.stateData.copy(
+                    status = BoardGameStatus.Borrowable.name,
+                    lastReturnedDate = Instant.now(),
+                    modifiedDate = Instant.now()
+                ),
                 participants = info.participants + borrowerAccountParty
             )
         }
 
         setCurrentProgressTracker(Progress.TX_BUILDING_TRANSACTION)
-        val command = Command(BoardGameContract.Commands.ReturnBoardGameCommand(), info.participants.map { it.owningKey })
+        val command =
+            Command(BoardGameContract.Commands.ReturnBoardGameCommand(), info.participants.map { it.owningKey })
         val txBuilder = TransactionBuilder(notary)
             .addCommand(command)
 
@@ -120,12 +121,12 @@ class ReturnBoardGameFlow(private val info: ReturnBoardGameInfo): AbstractFlowLo
 }
 
 @InitiatedBy(ReturnBoardGameFlow::class)
-class ReturnBoardGameFlowResponder(private val otherPartySession: FlowSession): FlowLogic<SignedTransaction>() {
+class ReturnBoardGameFlowResponder(private val otherPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {
 
-        val signTransactionFlow = object: SignTransactionFlow(otherPartySession) {
+        val signTransactionFlow = object : SignTransactionFlow(otherPartySession) {
             override fun checkTransaction(stx: SignedTransaction) {}
         }
 
