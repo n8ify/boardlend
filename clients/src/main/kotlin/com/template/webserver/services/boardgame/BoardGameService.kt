@@ -11,5 +11,6 @@ interface BoardGameService {
     fun createBoardGame(request: CreateBoardGameRequest): CommonResponse<BoardGameState.StateData>
     fun borrowBoardGame(request: BorrowBoardGameRequest): CommonResponse<List<BoardGameState.StateData>>
     fun returnBoardGame(request: ReturnBoardGameRequest): CommonResponse<List<BoardGameState.StateData>>
+    fun getBoardGame(boardGameCode: String): CommonResponse<BoardGameState.StateData>
 
 }

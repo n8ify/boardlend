@@ -1,6 +1,7 @@
 package com.template.webserver.services.boardgame.impl
 
 import com.template.flows.borrower.BorrowBoardGameFlow
+import com.template.flows.borrower.GetBoardGameFlow
 import com.template.flows.borrower.ReturnBoardGameFlow
 import com.template.flows.lender.CreateBoardGameFlow
 import com.template.info.BorrowBoardGameInfo
@@ -18,10 +19,13 @@ import com.template.webserver.services.boardgame.BoardGameService
 import net.corda.core.messaging.startFlow
 import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.utilities.getOrThrow
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
 class BoardGameServiceImpl : AbstractBaseService(), BoardGameService {
+
+    private val logger = LoggerFactory.getLogger(BoardGameServiceImpl::class.java)
 
     override fun createBoardGame(request: CreateBoardGameRequest): CommonResponse<BoardGameState.StateData> {
 
@@ -91,6 +95,21 @@ class BoardGameServiceImpl : AbstractBaseService(), BoardGameService {
             code = ResponseCode.S00000,
             message = "Create returned board game [${result.joinToString (", "){ "\"${it.name} (${it.boardGameCode})\"" }}] info completed ",
             data = result
+        )
+    }
+
+    override fun getBoardGame(boardGameCode: String): CommonResponse<BoardGameState.StateData> {
+
+        val (boardGameState, lenderState) = rpc.proxy.startFlow(::GetBoardGameFlow, boardGameCode)
+            .returnValue.getOrThrow()
+
+        logger.info("Get boardgame success (boardGame=$boardGameState, lenderState=$lenderState)")
+
+        return CommonResponse(
+            status = ResponseStatus.Success,
+            code = ResponseCode.S00000,
+            message = "Inquiry board game info completed ",
+            data = boardGameState.stateData
         )
     }
 }
